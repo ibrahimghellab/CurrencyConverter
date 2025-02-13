@@ -57,6 +57,12 @@ def app():
     root.grid_columnconfigure(6, minsize=20) 
     root.grid_rowconfigure(5, minsize=20)  
 
+    def update_convert_button():
+        if button_from.cget("text") != "From" and button_to.cget("text") != "To":
+            btn_convert.config(state=tk.NORMAL)
+        else:
+            btn_convert.config(state=tk.DISABLED)
+        
     def open_from_country_window():
         # Désactiver le bouton principal
         button_from.config(state=tk.DISABLED)
@@ -81,14 +87,17 @@ def app():
                 button_from.config(text=f"{selected_country}")
                 country_window.destroy()
                 button_from.config(state=tk.NORMAL)  # Réactiver le bouton de la fenêtre principale
+                update_convert_button() 
             elif selected_country in country :
                 button_from.config(text=f"{code[country.index(selected_country)]}")
                 country_window.destroy()
-                button_from.config(state=tk.NORMAL)  
+                button_from.config(state=tk.NORMAL) 
+                update_convert_button()  
             elif selected_country in currency:
                 button_from.config(text=f"{code[currency.index(selected_country)]}")
                 country_window.destroy()
                 button_from.config(state=tk.NORMAL)  
+                update_convert_button() 
             else:
                 messagebox.showerror("Erreur", "Ce pays n'est pas dans la liste.")
 
@@ -122,29 +131,33 @@ def app():
                 button_to.config(text=f"{selected_country}")
                 country_window.destroy()
                 button_to.config(state=tk.NORMAL)  # Réactiver le bouton de la fenêtre principale
+                update_convert_button() 
             elif selected_country in country :
                 button_to.config(text=f"{code[country.index(selected_country)]}")
                 country_window.destroy()
                 button_to.config(state=tk.NORMAL)  
+                update_convert_button() 
             elif selected_country in currency:
                 button_to.config(text=f"{code[currency.index(selected_country)]}")
                 country_window.destroy()
                 button_to.config(state=tk.NORMAL)  
+                update_convert_button() 
             else:
                 messagebox.showerror("Erreur", "Ce pays n'est pas dans la liste.")
+            
 
         select_button = tk.Button(country_window, text="Select", command=select_country)
         select_button.pack(pady=10)
-
         # Fermer la fenêtre lorsque l'utilisateur ferme la fenêtre secondaire
         country_window.protocol("WM_DELETE_WINDOW", lambda: (country_window.destroy(), button_to.config(state=tk.NORMAL)))
+        
 
-    button_from = tk.Button(width=7,height=1,text="From",command=open_from_country_window)
-    button_from.grid(row=2,column=2)
+    button_from = tk.Button(root, width=10, height=1, text="From", command=open_from_country_window)
+    button_from.grid(row=2, column=1, columnspan=2, sticky="ew", padx=10, pady=5)
 
+    button_to = tk.Button(root, width=10, height=1, text="To", command=open_to_country_window)
+    button_to.grid(row=2, column=3, columnspan=2, sticky="ew", padx=10, pady=5)
 
-    button_to=tk.Button(text="To",command=open_to_country_window ,width=7,height=1)
-    button_to.grid(row=2,column=4)
     
     def convert_click():
         for widget in root.winfo_children():
@@ -154,38 +167,16 @@ def app():
         to_value=button_to.cget("text").strip()
         data=get_data(from_value,to_value)
         price_splited=data["price"].split(" ")
-        real_price=1/float(data["price"].split(" ")[3])
+        real_price=1/float(data["price"].split(" ")[3].replace(",",""))
         title=tk.Label(root,text=data["title"]).grid(row=1,column=1,columnspan=4)
         # display the values from 1 to 5  
         for i in range(1,6):
-            tk.Label(root,text=f"{i} {price_splited[4]}").grid(row=6+i,column=1,columnspan=2) 
+            tk.Label(root,text=f"{i} {price_splited[4]}").grid(row=6+i,column=0,columnspan=2) 
             tk.Label(root,text=f"{round(real_price*i,3)} {price_splited[1]}").grid(row=6+i,column=4,columnspan=2)
         root.grid_rowconfigure(12, minsize=20) 
         
-        """ or
-        #display the values from 1 to 50 (1,5,10,25,50)
-            price1=tk.Label(root,text=f"{1} {price_splited[4]} = {real_price} {price_splited[1]}").grid(row=3,column=1,columnspan=4)
-            price5=tk.Label(root,text=f"{5} {price_splited[4]} = {real_price*5} {price_splited[1]}").grid(row=4,column=1,columnspan=4)
-            price10=tk.Label(root,text=f"{10} {price_splited[4]} = {real_price*10} {price_splited[1]}").grid(row=5,column=1,columnspan=4)
-            price25=tk.Label(root,text=f"{25} {price_splited[4]} = {real_price*25} {price_splited[1]}").grid(row=6,column=1,columnspan=4)
-            price50=tk.Label(root,text=f"{50} {price_splited[4]} = {real_price*50} {price_splited[1]}").grid(row=7,column=1,columnspan=4)
-        
-    data = [
-    ["Nom", "Âge", "Ville"],
-    ["Alice", "25", "Paris"],
-    ["Bob", "30", "Lyon"],
-    ["Charlie", "22", "Marseille"]
-]
-    for i, row in enumerate(data):
-        for j, cell in enumerate(row):
-            label = tk.Label(root, text=cell, borderwidth=1, relief="solid", padx=10, pady=5)
-            label.grid(row=i, column=j, sticky="nsew")
-
-    # Ajuster la taille des colonnes
-    for j in range(len(data[0])):
-        root.grid_columnconfigure(j, weight=1)
-    """
-    btn_convert=tk.Button(root,text="Convert",command=convert_click).grid(row=4,column=1,columnspan=4)
+    btn_convert = tk.Button(root, text="Convert", command=convert_click, state=tk.DISABLED)
+    btn_convert.grid(row=4, column=1, columnspan=5, sticky="ew", padx=10, pady=10)
     root.mainloop()
 
 
