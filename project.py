@@ -23,8 +23,6 @@ def get_data(fr,to):
         title=str(soup.find("h1").get_text()).split("- ")[1]
         
         return {
-            "from_image": "https://www.xe.com"+from_image['src'],
-            "to_image" : "https://www.xe.com"+to_image['src'],
             "price" : to_price,
             "title" : title
         }
@@ -64,22 +62,18 @@ def app():
             btn_convert.config(state=tk.DISABLED)
         
     def open_from_country_window():
-        # Désactiver le bouton principal
         button_from.config(state=tk.DISABLED)
             
-        # Créer une nouvelle fenêtre
         country_window = tk.Toplevel(root)
         country_window.title("Sélectionner un pays")
 
-        # Label
+        
         search_label = tk.Label(country_window, text="Rechercher un pays:")
         search_label.pack(pady=5)
 
-        # Combobox avec autocomplétion
         country_combobox = ttk.Combobox(country_window, values=code, state="normal", width=30)
         country_combobox.pack(pady=5)
 
-        # Bouton pour valider la sélection
         def select_country():
             
             selected_country = country_combobox.get()
@@ -104,26 +98,20 @@ def app():
         select_button = tk.Button(country_window, text="Select", command=select_country)
         select_button.pack(pady=10)
 
-        # Fermer la fenêtre lorsque l'utilisateur ferme la fenêtre secondaire
         country_window.protocol("WM_DELETE_WINDOW", lambda: (country_window.destroy(), button_from.config(state=tk.NORMAL)))
 
     def open_to_country_window():
-        # Désactiver le bouton principal
         button_to.config(state=tk.DISABLED)
             
-        # Créer une nouvelle fenêtre
         country_window = tk.Toplevel(root)
         country_window.title("Sélectionner un pays")
 
-        # Label
         search_label = tk.Label(country_window, text="Rechercher un pays:")
         search_label.pack(pady=5)
 
-        # Combobox avec autocomplétion
         country_combobox = ttk.Combobox(country_window, values=code, state="normal", width=30)
         country_combobox.pack(pady=5)
 
-        # Bouton pour valider la sélection
         def select_country():
             
             selected_country = country_combobox.get()
@@ -148,7 +136,6 @@ def app():
 
         select_button = tk.Button(country_window, text="Select", command=select_country)
         select_button.pack(pady=10)
-        # Fermer la fenêtre lorsque l'utilisateur ferme la fenêtre secondaire
         country_window.protocol("WM_DELETE_WINDOW", lambda: (country_window.destroy(), button_to.config(state=tk.NORMAL)))
         
 
@@ -161,15 +148,14 @@ def app():
     
     def convert_click():
         for widget in root.winfo_children():
-            if isinstance(widget, tk.Label):  # Vérifie si c'est un Label
-                widget.config(text="")  # Efface le texte du label
+            if isinstance(widget, tk.Label):
+                widget.config(text="")
         from_value=button_from.cget("text").strip()
         to_value=button_to.cget("text").strip()
         data=get_data(from_value,to_value)
         price_splited=data["price"].split(" ")
         real_price=1/float(data["price"].split(" ")[3].replace(",",""))
         title=tk.Label(root,text=data["title"]).grid(row=1,column=1,columnspan=4)
-        # display the values from 1 to 5  
         for i in range(1,6):
             tk.Label(root,text=f"{i} {price_splited[4]}").grid(row=6+i,column=0,columnspan=2) 
             tk.Label(root,text=f"{round(real_price*i,3)} {price_splited[1]}").grid(row=6+i,column=4,columnspan=2)
