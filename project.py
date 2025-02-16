@@ -9,6 +9,12 @@ import json
 def main():
     app()
 
+def is_valid_currency_code(code, valid_codes):
+    return code in valid_codes
+
+def format_price(price_str):
+    return float(price_str.replace(",", ""))
+
 def get_data(fr,to):
     url = f"https://www.xe.com/currencyconverter/convert/?Amount=1&From={fr}&To={to}"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}  
@@ -17,8 +23,6 @@ def get_data(fr,to):
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
-        from_image=soup.find("img", alt=fr.lower())
-        to_image=soup.find("img", alt=to.lower())
         to_price=soup.find("div", class_="sc-98b4ec47-0 jnAVFH").get_text()
         title=str(soup.find("h1").get_text()).split("- ")[1]
         
@@ -43,10 +47,6 @@ def app():
         code.append(countries[i]["code"])
         currency.append(countries[i]["currency"])
         country.append(countries[i]["country"])
-    print(countries)
-    print(code)
-    print(currency)
-    print(country)
     root = tk.Tk()
     root.title("Image Viewer")
     root.title("Convertor")
@@ -65,10 +65,10 @@ def app():
         button_from.config(state=tk.DISABLED)
             
         country_window = tk.Toplevel(root)
-        country_window.title("Sélectionner un pays")
+        country_window.title("Selecy a country")
 
         
-        search_label = tk.Label(country_window, text="Rechercher un pays:")
+        search_label = tk.Label(country_window, text="Search a country:")
         search_label.pack(pady=5)
 
         country_combobox = ttk.Combobox(country_window, values=code, state="normal", width=30)
@@ -80,7 +80,7 @@ def app():
             if selected_country in code :
                 button_from.config(text=f"{selected_country}")
                 country_window.destroy()
-                button_from.config(state=tk.NORMAL)  # Réactiver le bouton de la fenêtre principale
+                button_from.config(state=tk.NORMAL) 
                 update_convert_button() 
             elif selected_country in country :
                 button_from.config(text=f"{code[country.index(selected_country)]}")
@@ -104,9 +104,9 @@ def app():
         button_to.config(state=tk.DISABLED)
             
         country_window = tk.Toplevel(root)
-        country_window.title("Sélectionner un pays")
+        country_window.title("Select a country")
 
-        search_label = tk.Label(country_window, text="Rechercher un pays:")
+        search_label = tk.Label(country_window, text="Search a country:")
         search_label.pack(pady=5)
 
         country_combobox = ttk.Combobox(country_window, values=code, state="normal", width=30)
@@ -118,7 +118,7 @@ def app():
             if selected_country in code :
                 button_to.config(text=f"{selected_country}")
                 country_window.destroy()
-                button_to.config(state=tk.NORMAL)  # Réactiver le bouton de la fenêtre principale
+                button_to.config(state=tk.NORMAL)
                 update_convert_button() 
             elif selected_country in country :
                 button_to.config(text=f"{code[country.index(selected_country)]}")
@@ -131,7 +131,7 @@ def app():
                 button_to.config(state=tk.NORMAL)  
                 update_convert_button() 
             else:
-                messagebox.showerror("Erreur", "Ce pays n'est pas dans la liste.")
+                messagebox.showerror("Error", "This country isn't in the list")
             
 
         select_button = tk.Button(country_window, text="Select", command=select_country)
@@ -147,19 +147,30 @@ def app():
 
     
     def convert_click():
-        for widget in root.winfo_children():
-            if isinstance(widget, tk.Label):
-                widget.config(text="")
-        from_value=button_from.cget("text").strip()
-        to_value=button_to.cget("text").strip()
-        data=get_data(from_value,to_value)
-        price_splited=data["price"].split(" ")
-        real_price=1/float(data["price"].split(" ")[3].replace(",",""))
-        title=tk.Label(root,text=data["title"]).grid(row=1,column=1,columnspan=4)
-        for i in range(1,6):
-            tk.Label(root,text=f"{i} {price_splited[4]}").grid(row=6+i,column=0,columnspan=2) 
-            tk.Label(root,text=f"{round(real_price*i,3)} {price_splited[1]}").grid(row=6+i,column=4,columnspan=2)
-        root.grid_rowconfigure(12, minsize=20) 
+        from_value = button_from.cget("text").strip()
+        to_value = button_to.cget("text").strip()
+
+        if not is_valid_currency_code(from_value, code) or not is_valid_currency_code(to_value, code):
+            messagebox.showerror("Erreur", "Code devise invalide !")
+            return
+
+        data = get_data(from_value, to_value)
+
+        if "price" not in data:
+            messagebox.showerror("Erreur", "Échec de la récupération des données.")
+            return
+
+        price_splited = data["price"].split(" ")
+        real_price = 1 / format_price(price_splited[3])
+
+        title = tk.Label(root, text=data["title"]).grid(row=1, column=1, columnspan=4)
+        quantities = [1, 5, 10, 25, 50]
+
+        for index, i in enumerate(quantities):
+            tk.Label(root, text=f"{i} {price_splited[4]}").grid(row=6 + index, column=0, columnspan=2)
+            tk.Label(root, text=f"{round(real_price * i, 3)} {price_splited[1]}").grid(row=6 + index, column=4, columnspan=2)
+
+    root.grid_rowconfigure(12, minsize=20)
         
     btn_convert = tk.Button(root, text="Convert", command=convert_click, state=tk.DISABLED)
     btn_convert.grid(row=4, column=1, columnspan=5, sticky="ew", padx=10, pady=10)
