@@ -93,7 +93,7 @@ def app():
                 button_from.config(state=tk.NORMAL)  
                 update_convert_button() 
             else:
-                messagebox.showerror("Erreur", "Ce pays n'est pas dans la liste.")
+                messagebox.showerror("Error", "This country isn't in the list")
 
         select_button = tk.Button(country_window, text="Select", command=select_country)
         select_button.pack(pady=10)
@@ -157,7 +157,7 @@ def app():
         data = get_data(from_value, to_value)
 
         if "price" not in data:
-            messagebox.showerror("Erreur", "Échec de la récupération des données.")
+            messagebox.showerror("Error", "Fail to fetch data")
             return
 
         price_splited = data["price"].split(" ")
